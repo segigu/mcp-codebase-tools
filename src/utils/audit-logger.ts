@@ -261,3 +261,101 @@ export function getAuditSummary(): {
     tools_with_regressions
   }
 }
+
+/**
+ * AuditLogger class - Wrapper for audit functions to provide class-based API
+ */
+export class AuditLogger {
+  private projectPath: string
+
+  constructor(projectPath: string) {
+    this.projectPath = projectPath
+  }
+
+  /**
+   * Get audit history for a specific tool
+   */
+  async getToolHistory(toolName: string) {
+    const history = getAuditHistory(toolName, 100)
+
+    if (history.length === 0) {
+      return {
+        executionCount: 0,
+        lastExecuted: new Date().toISOString(),
+        results: []
+      }
+    }
+
+    const results = history.map(entry => ({
+      timestamp: entry.timestamp,
+      score: entry.results.score || 'N/A',
+      grade: this.extractGrade(entry),
+      trends: entry.trends?.vs_previous ? {
+        scoreTrend: entry.trends.vs_previous.score_delta || 0
+      } : undefined
+    }))
+
+    return {
+      executionCount: history.length,
+      lastExecuted: history[0]?.timestamp || new Date().toISOString(),
+      results
+    }
+  }
+
+  /**
+   * Get summary of all audits
+   */
+  async getSummary() {
+    const summary = getAuditSummary()
+    const log = readAuditLog()
+
+    // Group audits by tool
+    const toolsMap = new Map<string, AuditLogEntry[]>()
+    for (const audit of log.audits) {
+      if (!toolsMap.has(audit.tool)) {
+        toolsMap.set(audit.tool, [])
+      }
+      toolsMap.get(audit.tool)!.push(audit)
+    }
+
+    // Build tools object
+    const tools: Record<string, any> = {}
+    for (const [toolName, audits] of toolsMap.entries()) {
+      const sortedAudits = audits.sort((a, b) =>
+        new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime()
+      )
+
+      const lastAudit = sortedAudits[sortedAudits.length - 1]
+
+      tools[toolName] = {
+        executionCount: audits.length,
+        lastExecuted: lastAudit.timestamp,
+        results: sortedAudits.map(audit => ({
+          score: audit.results.score || 'N/A',
+          grade: this.extractGrade(audit)
+        }))
+      }
+    }
+
+    return {
+      totalExecutions: summary.total_audits,
+      tools
+    }
+  }
+
+  /**
+   * Extract grade from audit entry
+   */
+  private extractGrade(entry: AuditLogEntry): string {
+    // Try to find grade in summary
+    if (entry.results.summary) {
+      if (entry.results.summary.grade) {
+        return entry.results.summary.grade
+      }
+      if (entry.results.summary.completeness) {
+        return entry.results.summary.completeness
+      }
+    }
+    return 'N/A'
+  }
+}

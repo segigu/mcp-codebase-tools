@@ -430,3 +430,61 @@ export function getTTL(tool: string): number {
 
 // Initialize cache on module load
 initCache()
+
+/**
+ * CacheManager class - Wrapper for cache functions to provide class-based API
+ */
+export class CacheManager {
+  private projectPath: string
+
+  constructor(projectPath: string) {
+    this.projectPath = projectPath
+    // Ensure cache is initialized
+    initCache()
+  }
+
+  /**
+   * Get cache statistics
+   */
+  async getStats() {
+    const rawStats = getCacheStats()
+
+    // Convert hitRate from string "50.0%" to number 0.5
+    const hitRateNum = parseFloat(rawStats.hitRate) / 100
+    const missRate = 1 - hitRateNum
+
+    // Convert byTool from Record<string, number> to Record<string, {hits: number, misses: number}>
+    const byTool: Record<string, { hits: number; misses: number }> = {}
+
+    // We don't have per-tool hits/misses in current implementation
+    // So we'll create a simple structure based on entry counts
+    for (const [tool, count] of Object.entries(rawStats.entriesByTool)) {
+      byTool[tool] = {
+        hits: Math.floor(count * hitRateNum), // Estimate
+        misses: Math.floor(count * missRate)   // Estimate
+      }
+    }
+
+    return {
+      totalEntries: rawStats.totalEntries,
+      totalSize: rawStats.totalSizeBytes,
+      hitRate: hitRateNum,
+      missRate: missRate,
+      byTool
+    }
+  }
+
+  /**
+   * Clear cache for specific tool
+   */
+  async clearTool(toolName: string): Promise<void> {
+    clearCache(toolName)
+  }
+
+  /**
+   * Clear all cache
+   */
+  async clearAll(): Promise<void> {
+    clearCache()
+  }
+}

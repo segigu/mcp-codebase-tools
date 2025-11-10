@@ -7,8 +7,8 @@ import { TOOL_REGISTRY } from '../utils/tool-registry.js';
 import { executeToolCommand } from './executor.js';
 import { initCommand } from './commands/init.js';
 import { listCommand } from './commands/list.js';
-// import { cacheCommand } from './commands/cache.js';
-// import { auditCommand } from './commands/audit.js';
+import { cacheCommand } from './commands/cache.js';
+import { auditCommand } from './commands/audit.js';
 
 // Read package.json for version
 const pkg = {
@@ -62,18 +62,18 @@ export class CLI {
       .action(listCommand);
 
     this.program
-//       .command('cache')
-//       .description('Manage cache')
-//       .option('status', 'Show cache status')
-//       .option('clear [tool]', 'Clear cache (all or specific tool)')
-//       .action(cacheCommand);
+      .command('cache')
+      .description('Manage cache')
+      .option('--status', 'Show cache status')
+      .option('--clear [tool]', 'Clear cache (all or specific tool)')
+      .action(cacheCommand);
 
     this.program
-//       .command('audit')
-//       .description('Audit commands')
-//       .option('history <tool>', 'Show audit history for tool')
-//       .option('summary', 'Show audit summary')
-//       .action(auditCommand);
+      .command('audit')
+      .description('Audit commands')
+      .option('--history <tool>', 'Show audit history for tool')
+      .option('--summary', 'Show audit summary')
+      .action(auditCommand);
 
     // Register all tools from registry as commands
     for (const [toolId, tool] of Object.entries(TOOL_REGISTRY)) {
