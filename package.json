@@ -49,6 +49,7 @@
     "build:bin": "chmod +x dist/bin/mcp.js",
     "dev": "tsc --watch",
     "clean": "rm -rf dist",
+    "prepare": "npm run build",
     "prepublishOnly": "npm run clean && npm run build",
     "test": "node --test",
     "lint": "tsc --noEmit",
