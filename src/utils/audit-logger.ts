@@ -15,6 +15,7 @@
 import * as fs from 'fs'
 import * as path from 'path'
 import { fileURLToPath } from 'url'
+import { markAuditRun, getNextStepsMessage } from './audit-status.js'
 
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
@@ -200,6 +201,24 @@ export function logAuditResult(
   }
 
   writeAuditLog(log)
+
+  // Update audit status for reminder system
+  const criticalIssuesCount = results.issues?.filter(
+    (issue: any) => issue.severity === 'critical' || issue.severity === 'high'
+  ).length || 0
+
+  // Get project path - use the path where AUDIT_LOG.json is located
+  // This is typically docs/audits/, so go up 2 levels
+  const auditLogPath = getAuditLogPath()
+  const projectRoot = path.resolve(path.dirname(auditLogPath), '..', '..')
+
+  markAuditRun(projectRoot, criticalIssuesCount)
+
+  // Show next steps reminder (only if there are critical issues)
+  if (criticalIssuesCount > 0) {
+    const nextSteps = getNextStepsMessage(criticalIssuesCount)
+    console.log(nextSteps)
+  }
 }
 
 /**
