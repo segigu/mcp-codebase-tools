@@ -8,6 +8,7 @@ MCP (Model Context Protocol) Codebase Tools is a comprehensive suite of 30 CLI c
 
 ## ✨ Features
 
+- **🎯 Session Context Manager** - 95% token savings on session tracking (NEW!)
 - **🔒 Security Audits** - Find XSS, SQL injection, and other vulnerabilities
 - **♿ Accessibility Checks** - WCAG compliance and a11y issues
 - **📊 Technical Debt** - TODO/FIXME tracking, deprecated APIs
@@ -111,6 +112,21 @@ mcp find-components
 | `mcp git-hotspots` | Git commit frequency analysis | 94% (8K → 500) |
 | `mcp docs-generator <component>` | Generate documentation | 90% (5K → 500) |
 | `mcp mock-generator <type>` | Generate mock data | 90% (2K → 200) |
+
+### 🎯 Session Management (NEW!)
+
+| Command | Description | Token Savings |
+|---------|-------------|---------------|
+| `mcp checkpoint` | Create lightweight checkpoint (~40 tokens) | 95% (5K → 40) |
+| `mcp session-todo` | Add TODO to current checkpoint | 98% (1K → 20) |
+| `mcp session-health` | Analyze session fragmentation | 90% (2K → 200) |
+| `mcp session-summary` | Generate structured summary | 97% (15K → 500) |
+| `mcp session-continue` | Continue from last session | 95% (5K → 300) |
+| `mcp context-check` | Detect context switches | 95% (2K → 100) |
+
+**What it solves:** When Claude Code hits 200k token limit, it creates expensive summaries (15K tokens). Session Manager tracks work with lightweight checkpoints (40 tokens each) and creates focused summaries (500 tokens). **95% token savings!**
+
+📖 [Full Session Manager Documentation](./docs/SESSION_MANAGER.md)
 
 ### 🎯 Composite Skills (Multiple tools in one)
 

@@ -16,6 +16,7 @@ export type ToolCategory =
   | 'search'       // Search and query tools
   | 'transform'    // Code transformation tools
   | 'audit'        // Audit and quality tools
+  | 'session'      // Session context management tools
   | 'utility'      // Utility tools
 
 /**

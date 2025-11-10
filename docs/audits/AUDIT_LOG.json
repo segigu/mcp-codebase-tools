@@ -1,0 +1,50 @@
+{
+  "schema_version": "1.0.0",
+  "project": "Metacell",
+  "audits": [
+    {
+      "id": "analyzeComplexity-1762762941196",
+      "timestamp": "2025-11-10T08:22:21.195Z",
+      "command": "mcp:complexity",
+      "tool": "analyzeComplexity",
+      "results": {
+        "summary": {
+          "avgComplexity": 0,
+          "filesWithHighComplexity": 0,
+          "totalFiles": 0,
+          "totalFunctions": 0
+        },
+        "stats": {
+          "totalFiles": 0,
+          "totalLines": 0,
+          "totalFunctions": 0,
+          "avgComplexity": 0,
+          "filesWithHighComplexity": 0
+        }
+      },
+      "duration_ms": 4
+    },
+    {
+      "id": "techDebtCalculator-1762762953685",
+      "timestamp": "2025-11-10T08:22:33.684Z",
+      "command": "mcp:tech-debt",
+      "tool": "techDebtCalculator",
+      "results": {
+        "summary": {
+          "score": "90/100",
+          "totalTodos": 0,
+          "todosByPriority": {},
+          "deprecatedCount": 0
+        },
+        "score": "90/100",
+        "stats": {
+          "todos": 0,
+          "fixmes": 0,
+          "hacks": 0,
+          "deprecated": 0
+        }
+      },
+      "duration_ms": 4
+    }
+  ]
+}

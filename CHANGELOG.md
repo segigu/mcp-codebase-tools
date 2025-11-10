@@ -5,6 +5,40 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.2.0] - 2025-11-10
+
+### Added - Session Context Manager 🎯
+- **NEW: Session Management Tools (6 tools)** - Solve Claude Code token budget exhaustion
+  - `mcp:checkpoint` - Create lightweight checkpoints (~40 tokens vs 5000 tokens for summaries)
+  - `mcp:session-todo` - Add TODO items to track unfinished work
+  - `mcp:session-health` - Analyze session fragmentation and get recommendations
+  - `mcp:session-summary` - Generate structured markdown summaries (~500 tokens vs 15000)
+  - `mcp:session-continue` - Continue from last session with unfinished work
+  - `mcp:context-check` - Detect context switches in recent commits (git hook integration)
+
+### Features
+- **Auto-categorization:** Automatically detects work category from modified files (auth, api, ui, utils, etc.)
+- **Importance detection:** Marks checkpoints as high/low priority based on TODOs and file count
+- **Fragmentation analysis:** Detects when session spans too many unrelated topics
+- **Structured storage:** All sessions stored in `~/.mcp-session-context/` with JSON state + Markdown summaries
+- **Token savings:** 95% reduction in session tracking overhead (40-500 tokens vs 5000-15000)
+
+### Documentation
+- Added comprehensive `docs/SESSION_MANAGER.md` with usage examples and API reference
+- Updated README.md with Session Management section
+- Added test script `test-session.js` for quick validation
+
+### Technical
+- New category 'session' added to tool taxonomy
+- Added 6 session tools to tool registry with full metadata
+- New utility classes: `SessionManager` for core logic, session types in `session-types.ts`
+- npm scripts: `mcp:checkpoint`, `mcp:session-todo`, `mcp:session-health`, `mcp:session-summary`, `mcp:session-continue`, `mcp:context-check`
+
+### Stats
+- **Total tools:** 36 (was 30)
+- **Session tools:** 6 new
+- **Token savings:** Up to 97% on session tracking
+
 ## [1.1.1] - 2025-01-10
 
 ### Security

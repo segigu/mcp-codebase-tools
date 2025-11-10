@@ -712,6 +712,200 @@ export const TOOL_REGISTRY: Record<string, ToolMetadata> = {
         expectedOutput: 'Detailed help for security audit'
       }
     ]
+  },
+
+  // ===== SESSION TOOLS (6) =====
+
+  createCheckpoint: {
+    id: 'createCheckpoint',
+    name: 'Create Checkpoint',
+    description: 'Save current progress checkpoint with brief note',
+    longDescription: 'Creates a lightweight checkpoint to track session progress. Automatically detects category from modified files and associates with git commit. Helps preserve context for future sessions.',
+    category: 'session',
+    tags: ['session', 'checkpoint', 'context', 'progress'],
+    complexity: 'simple',
+    command: 'mcp:checkpoint',
+    npmScript: 'mcp:checkpoint',
+    supportsPagination: false,
+    supportsFiltering: false,
+    hasAuditLogging: false,
+    inputType: 'CreateCheckpointInput',
+    outputType: 'CreateCheckpointOutput',
+    estimatedTokenUsage: { min: 20, avg: 40, max: 80 },
+    estimatedDuration: { min: 50, avg: 100, max: 200 },
+    examples: [
+      {
+        title: 'Create checkpoint',
+        command: 'npm run mcp:checkpoint -- "Fixed login form validation"',
+        description: 'Save progress with brief note',
+        expectedOutput: 'Checkpoint created with auto-detected category'
+      },
+      {
+        title: 'Important checkpoint',
+        command: 'npm run mcp:checkpoint -- "Added JWT handling" --important',
+        description: 'Mark checkpoint as high importance',
+        expectedOutput: 'High-priority checkpoint created'
+      }
+    ]
+  },
+
+  addSessionTodo: {
+    id: 'addSessionTodo',
+    name: 'Add Session TODO',
+    description: 'Add TODO item to current session checkpoint',
+    longDescription: 'Adds a TODO to the last checkpoint in specified category. Marks work as unfinished and high priority. Useful for tracking what needs to be done next.',
+    category: 'session',
+    tags: ['session', 'todo', 'task', 'unfinished'],
+    complexity: 'simple',
+    command: 'mcp:session-todo',
+    npmScript: 'mcp:session-todo',
+    supportsPagination: false,
+    supportsFiltering: false,
+    hasAuditLogging: false,
+    inputType: 'AddTodoInput',
+    outputType: 'AddTodoOutput',
+    estimatedTokenUsage: { min: 10, avg: 20, max: 40 },
+    estimatedDuration: { min: 30, avg: 60, max: 100 },
+    examples: [
+      {
+        title: 'Add TODO',
+        command: 'npm run mcp:session-todo -- "Add error handling for token refresh"',
+        description: 'Add TODO to last checkpoint',
+        expectedOutput: 'TODO added to checkpoint'
+      },
+      {
+        title: 'Add TODO to category',
+        command: 'npm run mcp:session-todo -- "Write tests" --category api',
+        description: 'Add TODO to specific category',
+        expectedOutput: 'TODO added to api category'
+      }
+    ]
+  },
+
+  getSessionHealth: {
+    id: 'getSessionHealth',
+    name: 'Session Health Check',
+    description: 'Analyze session fragmentation and get recommendations',
+    longDescription: 'Analyzes current session metrics: duration, checkpoint count, category fragmentation, and commit distribution. Provides recommendation for starting new session.',
+    category: 'session',
+    tags: ['session', 'health', 'metrics', 'fragmentation'],
+    complexity: 'simple',
+    command: 'mcp:session-health',
+    npmScript: 'mcp:session-health',
+    supportsPagination: false,
+    supportsFiltering: false,
+    hasAuditLogging: false,
+    inputType: 'SessionHealthInput',
+    outputType: 'SessionHealthOutput',
+    estimatedTokenUsage: { min: 100, avg: 200, max: 400 },
+    estimatedDuration: { min: 100, avg: 200, max: 400 },
+    examples: [
+      {
+        title: 'Check session health',
+        command: 'npm run mcp:session-health',
+        description: 'Get session metrics and recommendations',
+        expectedOutput: 'Health metrics with fragmentation level and recommendation'
+      }
+    ]
+  },
+
+  createSessionSummary: {
+    id: 'createSessionSummary',
+    name: 'Session Summary',
+    description: 'Generate session summary and archive to markdown',
+    longDescription: 'Creates structured markdown summary of session grouped by category. Archives session data and clears active session. Saves only what is done and what needs to be finished.',
+    category: 'session',
+    tags: ['session', 'summary', 'archive', 'markdown'],
+    complexity: 'moderate',
+    command: 'mcp:session-summary',
+    npmScript: 'mcp:session-summary',
+    supportsPagination: false,
+    supportsFiltering: false,
+    hasAuditLogging: false,
+    inputType: 'SessionSummaryInput',
+    outputType: 'SessionSummaryOutput',
+    estimatedTokenUsage: { min: 200, avg: 500, max: 1000 },
+    estimatedDuration: { min: 150, avg: 300, max: 600 },
+    examples: [
+      {
+        title: 'Create summary',
+        command: 'npm run mcp:session-summary',
+        description: 'Generate and save session summary',
+        expectedOutput: 'Markdown summary saved to docs/sessions/'
+      },
+      {
+        title: 'Custom output path',
+        command: 'npm run mcp:session-summary -- --output ./my-session.md',
+        description: 'Save summary to custom location',
+        expectedOutput: 'Summary saved to specified path'
+      }
+    ]
+  },
+
+  continueSession: {
+    id: 'continueSession',
+    name: 'Continue Session',
+    description: 'Show unfinished work from last session',
+    longDescription: 'Displays last session summary filtered for high-priority and unfinished work. Shows what was done and what needs to be completed. Useful for picking up where you left off.',
+    category: 'session',
+    tags: ['session', 'continue', 'resume', 'unfinished'],
+    complexity: 'simple',
+    command: 'mcp:session-continue',
+    npmScript: 'mcp:session-continue',
+    supportsPagination: false,
+    supportsFiltering: true,
+    hasAuditLogging: false,
+    inputType: 'SessionContinueInput',
+    outputType: 'SessionContinueOutput',
+    estimatedTokenUsage: { min: 150, avg: 300, max: 600 },
+    estimatedDuration: { min: 100, avg: 200, max: 400 },
+    examples: [
+      {
+        title: 'Continue last session',
+        command: 'npm run mcp:session-continue',
+        description: 'Show unfinished work from last session',
+        expectedOutput: 'High-priority and unfinished items'
+      },
+      {
+        title: 'Filter by category',
+        command: 'npm run mcp:session-continue -- --category auth',
+        description: 'Show only auth-related unfinished work',
+        expectedOutput: 'Filtered unfinished work'
+      }
+    ]
+  },
+
+  checkContext: {
+    id: 'checkContext',
+    name: 'Context Check',
+    description: 'Detect context switches in recent commits',
+    longDescription: 'Analyzes recent git commits to detect if you are switching between different modules. Recommends creating checkpoint when context switch is detected. Useful as pre-commit hook.',
+    category: 'session',
+    tags: ['session', 'context', 'switch', 'git', 'hook'],
+    complexity: 'simple',
+    command: 'mcp:context-check',
+    npmScript: 'mcp:context-check',
+    supportsPagination: false,
+    supportsFiltering: false,
+    hasAuditLogging: false,
+    inputType: 'ContextCheckInput',
+    outputType: 'ContextCheckOutput',
+    estimatedTokenUsage: { min: 50, avg: 100, max: 200 },
+    estimatedDuration: { min: 100, avg: 200, max: 400 },
+    examples: [
+      {
+        title: 'Check for context switch',
+        command: 'npm run mcp:context-check',
+        description: 'Analyze last 4 commits for context switching',
+        expectedOutput: 'Warning if context switch detected'
+      },
+      {
+        title: 'Custom commit window',
+        command: 'npm run mcp:context-check -- --recent 6',
+        description: 'Check last 6 commits',
+        expectedOutput: 'Context switch analysis'
+      }
+    ]
   }
 }
 
@@ -813,6 +1007,7 @@ export function getTools(level: DetailLevel, options?: ToolSearchOptions): ToolR
     search: 0,
     transform: 0,
     audit: 0,
+    session: 0,
     utility: 0
   }
 
@@ -901,6 +1096,7 @@ export function getCategorySummary(): Record<ToolCategory, number> {
     search: 0,
     transform: 0,
     audit: 0,
+    session: 0,
     utility: 0
   }
 

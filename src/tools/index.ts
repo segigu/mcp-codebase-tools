@@ -13,5 +13,8 @@ export * from './search/index.js'
 // Refactoring tools
 export * from './refactor/index.js'
 
+// Session management tools
+export * from './session/index.js'
+
 // Composite skills
 export * from './composite/index.js'

@@ -1,7 +1,7 @@
 {
   "name": "@mcp/codebase-tools",
-  "version": "1.1.1",
-  "description": "MCP Codebase Analysis Tools - 90-98% token savings for AI-powered code analysis. 30 commands for security audits, accessibility checks, complexity analysis, and more.",
+  "version": "1.2.0",
+  "description": "MCP Codebase Analysis Tools - 90-98% token savings for AI-powered code analysis. 36 commands including Session Context Manager for tracking work with 95% token savings. Security audits, accessibility checks, complexity analysis, and more.",
   "keywords": [
     "mcp",
     "code-analysis",
@@ -63,7 +63,13 @@
     "analyze:health": "mcp mcp:code-health-check",
     "analyze:audit": "mcp mcp:full-project-audit",
     "analyze:git": "mcp mcp:git-hotspots",
-    "analyze:all": "npm run analyze:structure && npm run analyze:health && npm run analyze:audit"
+    "analyze:all": "npm run analyze:structure && npm run analyze:health && npm run analyze:audit",
+    "mcp:checkpoint": "mcp mcp:checkpoint",
+    "mcp:session-todo": "mcp mcp:session-todo",
+    "mcp:session-health": "mcp mcp:session-health",
+    "mcp:session-summary": "mcp mcp:session-summary",
+    "mcp:session-continue": "mcp mcp:session-continue",
+    "mcp:context-check": "mcp mcp:context-check"
   },
   "dependencies": {
     "@babel/parser": "^7.26.2",
