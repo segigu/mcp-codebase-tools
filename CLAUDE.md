@@ -6,11 +6,76 @@ This file provides guidance to Claude Code when working on MCP Codebase Tools.
 
 ## 🎯 Project Overview
 
-**MCP Codebase Tools** - Global CLI tool providing 27+ code analysis commands with 90-98% token savings for AI-powered analysis.
+**MCP Codebase Tools** - Global CLI tool providing 30 code analysis commands with 90-98% token savings for AI-powered analysis.
 
-**Current Version:** v1.0.0
-**Status:** 27/30 tools working (90%)
+**Current Version:** v1.1.1
+**Status:** 30/30 tools working (100%) ✅
 **GitHub:** https://github.com/segigu/mcp-codebase-tools
+
+---
+
+## 🚨 CRITICAL: Use MCP Commands (ALWAYS!)
+
+**YOU MUST use MCP commands instead of Read/Grep/Glob whenever analyzing this codebase!**
+
+### ✅ DO THIS (Use MCP):
+
+```bash
+# Instead of reading multiple files:
+npm run analyze:structure
+# or
+mcp mcp:structure
+
+# Instead of grepping for complexity:
+npm run analyze:complexity
+
+# Instead of multiple Read commands for tech debt:
+npm run analyze:tech-debt
+
+# Before making changes, check code health:
+npm run analyze:health
+```
+
+### ❌ DON'T DO THIS:
+
+```bash
+# ❌ WRONG - wastes tokens!
+Read src/tools/analyze/*.ts
+Grep "export" src/
+Read src/lib/config.ts
+Read src/cli/index.ts
+```
+
+### 📋 Available MCP Commands for Self-Analysis:
+
+| Command | Purpose | When to Use |
+|---------|---------|-------------|
+| `npm run analyze:structure` | Project structure | Understanding architecture, finding files |
+| `npm run analyze:complexity` | Code complexity | Finding complex functions to refactor |
+| `npm run analyze:security` | Security issues | Before committing security-related code |
+| `npm run analyze:unused` | Unused exports | Cleanup, finding dead code |
+| `npm run analyze:tech-debt` | TODOs, FIXMEs | Planning work, finding what needs fixing |
+| `npm run analyze:health` | Overall code health | Comprehensive check before major changes |
+| `npm run analyze:audit` | Full audit | Before releases, comprehensive review |
+| `npm run analyze:git` | Git hotspots | Finding frequently changed files |
+| `npm run analyze:all` | Run all above | Complete analysis |
+
+### 🎯 When to Use MCP vs Manual Tools:
+
+**Use MCP when:**
+- ✅ Understanding project structure
+- ✅ Looking for patterns across multiple files
+- ✅ Analyzing code quality/complexity
+- ✅ Searching for specific types of code (components, APIs, etc.)
+- ✅ Finding technical debt or issues
+- ✅ Getting comprehensive overview
+
+**Use Read/Grep when:**
+- ✅ Reading specific file you already know path to
+- ✅ Making targeted edits to known files
+- ✅ Searching for very specific string in 1-2 files
+
+**IMPORTANT:** If you need to understand the codebase structure or find patterns, ALWAYS try MCP first! It's 90-98% more efficient!
 
 ---
 
