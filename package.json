@@ -1,6 +1,6 @@
 {
   "name": "@mcp/codebase-tools",
-  "version": "1.1.0",
+  "version": "1.1.1",
   "description": "MCP Codebase Analysis Tools - 90-98% token savings for AI-powered code analysis. 30 commands for security audits, accessibility checks, complexity analysis, and more.",
   "keywords": [
     "mcp",
