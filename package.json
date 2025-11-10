@@ -54,7 +54,16 @@
     "lint": "tsc --noEmit",
     "format": "prettier --write \"src/**/*.ts\"",
     "link:local": "npm link",
-    "unlink:local": "npm unlink -g @mcp/codebase-tools"
+    "unlink:local": "npm unlink -g @mcp/codebase-tools",
+    "analyze:structure": "mcp mcp:structure",
+    "analyze:complexity": "mcp mcp:complexity",
+    "analyze:security": "mcp mcp:security-audit",
+    "analyze:unused": "mcp mcp:unused",
+    "analyze:tech-debt": "mcp mcp:tech-debt",
+    "analyze:health": "mcp mcp:code-health-check",
+    "analyze:audit": "mcp mcp:full-project-audit",
+    "analyze:git": "mcp mcp:git-hotspots",
+    "analyze:all": "npm run analyze:structure && npm run analyze:health && npm run analyze:audit"
   },
   "dependencies": {
     "@babel/parser": "^7.26.2",
