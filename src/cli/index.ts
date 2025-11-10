@@ -76,6 +76,9 @@ export class CLI {
       .option('--analyze', 'Analyze audit log and show trends')
       .option('--create-tasks', 'Create tasks from critical issues')
       .option('--trends', 'Show detailed trend charts over time')
+      .option('--compare', 'Compare audits (latest vs previous by default)')
+      .option('--before <date>', 'Before date for comparison (YYYY-MM-DD)')
+      .option('--after <date>', 'After date for comparison (YYYY-MM-DD)')
       .option('--history <tool>', 'Show audit history for tool')
       .option('--summary', 'Show audit summary')
       .action(auditCommand);

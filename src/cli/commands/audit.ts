@@ -14,6 +14,9 @@ export interface AuditOptions {
   createTasks?: boolean;
   andFix?: boolean;
   trends?: boolean;
+  compare?: boolean;
+  before?: string;
+  after?: string;
 }
 
 export async function auditCommand(options: AuditOptions): Promise<void> {
@@ -28,12 +31,14 @@ export async function auditCommand(options: AuditOptions): Promise<void> {
     await handleAuditCreateTasks(projectPath);
   } else if (options.trends) {
     await handleAuditTrends(projectPath);
+  } else if (options.compare) {
+    await handleAuditCompare(projectPath, options.before, options.after);
   } else if (options.history) {
     await handleAuditHistory(auditLogger, options.history);
   } else if (options.summary) {
     await handleAuditSummary(auditLogger);
   } else {
-    console.log(chalk.yellow('Usage: mcp audit [--and-fix] [--analyze] [--create-tasks] [--trends] [--history <tool>] [--summary]'));
+    console.log(chalk.yellow('Usage: mcp audit [--and-fix] [--analyze] [--create-tasks] [--trends] [--compare --before <date> --after <date>] [--history <tool>] [--summary]'));
   }
 }
 
@@ -509,6 +514,155 @@ async function handleAuditTrends(projectPath: string): Promise<void> {
       console.log(chalk.dim('  mcp mcp:tech-debt\n'));
     } else {
       console.error(chalk.red('Failed to analyze trends:'), error instanceof Error ? error.message : error);
+      process.exit(1);
+    }
+  }
+}
+
+async function handleAuditCompare(projectPath: string, beforeDate?: string, afterDate?: string): Promise<void> {
+  const auditLogPath = path.join(projectPath, 'docs', 'audits', 'AUDIT_LOG.json');
+
+  try {
+    const analyzer = AuditAnalyzer.loadFromFile(auditLogPath);
+
+    // If dates not provided, use latest and previous audit
+    let beforeAudits: any;
+    let afterAudits: any;
+
+    if (!beforeDate && !afterDate) {
+      // Compare latest vs previous
+      const trends = analyzer.analyzeTrends();
+      const allAudits: any[] = [];
+
+      // Collect all audits with timestamps
+      for (const [category, data] of Object.entries(trends)) {
+        if (data.length >= 2) {
+          const latest = data[data.length - 1];
+          const previous = data[data.length - 2];
+          allAudits.push({ category, audit: previous, when: 'before' });
+          allAudits.push({ category, audit: latest, when: 'after' });
+        }
+      }
+
+      if (allAudits.length === 0) {
+        console.log(chalk.yellow('\n⚠️  Not enough audits to compare (need at least 2 audits per category).\n'));
+        return;
+      }
+
+      // Group by when
+      beforeAudits = {};
+      afterAudits = {};
+      allAudits.forEach(item => {
+        if (item.when === 'before') {
+          beforeAudits[item.category] = item.audit;
+        } else {
+          afterAudits[item.category] = item.audit;
+        }
+      });
+
+      console.log(chalk.cyan.bold('\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━'));
+      console.log(chalk.cyan.bold('🔍 Audit Comparison - Latest vs Previous'));
+      console.log(chalk.cyan.bold('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n'));
+
+    } else {
+      // Compare specific dates
+      console.log(chalk.yellow('\n⚠️  Date-based comparison not yet implemented. Using latest vs previous.\n'));
+      return;
+    }
+
+    // Compare categories
+    const categories: Record<string, { name: string; emoji: string }> = {
+      security: { name: 'Security', emoji: '🔒' },
+      a11y: { name: 'Accessibility', emoji: '♿' },
+      techDebt: { name: 'Technical Debt', emoji: '💰' },
+      complexity: { name: 'Complexity', emoji: '🧮' },
+    };
+
+    let totalImprovements = 0;
+    let totalRegressions = 0;
+    let totalNeutral = 0;
+
+    for (const [category, categoryInfo] of Object.entries(categories)) {
+      const before = beforeAudits[category];
+      const after = afterAudits[category];
+
+      if (!before || !after) continue;
+
+      const scoreDiff = after.score - before.score;
+      const issuesDiff = (after.issues || 0) - (before.issues || 0);
+
+      console.log(chalk.bold(`\n${categoryInfo.emoji} ${categoryInfo.name}\n`));
+
+      // Score comparison
+      const scoreStatus = scoreDiff > 0 ? '✅' : scoreDiff < 0 ? '⚠️' : '→';
+      const scoreColor = scoreDiff > 0 ? chalk.green : scoreDiff < 0 ? chalk.yellow : chalk.dim;
+      console.log(scoreColor(`  Score: ${before.score.toFixed(1)} → ${after.score.toFixed(1)} (${scoreDiff > 0 ? '+' : ''}${scoreDiff.toFixed(1)}) ${scoreStatus}`));
+
+      // Issues comparison
+      if (after.issues !== undefined && before.issues !== undefined) {
+        const issuesStatus = issuesDiff < 0 ? '✅' : issuesDiff > 0 ? '⚠️' : '→';
+        const issuesColor = issuesDiff < 0 ? chalk.green : issuesDiff > 0 ? chalk.yellow : chalk.dim;
+        console.log(issuesColor(`  Issues: ${before.issues} → ${after.issues} (${issuesDiff > 0 ? '+' : ''}${issuesDiff}) ${issuesStatus}`));
+      }
+
+      // Count improvements/regressions
+      if (scoreDiff > 0 || issuesDiff < 0) {
+        totalImprovements++;
+      } else if (scoreDiff < 0 || issuesDiff > 0) {
+        totalRegressions++;
+      } else {
+        totalNeutral++;
+      }
+
+      // Show dates
+      const beforeDateStr = before.timestamp.toLocaleDateString();
+      const afterDateStr = after.timestamp.toLocaleDateString();
+      console.log(chalk.dim(`  Period: ${beforeDateStr} → ${afterDateStr}\n`));
+    }
+
+    // Summary
+    console.log(chalk.cyan.bold('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n'));
+    console.log(chalk.bold('Summary:\n'));
+
+    if (totalImprovements > 0) {
+      console.log(chalk.green(`  ✅ Improvements: ${totalImprovements} ${totalImprovements === 1 ? 'category' : 'categories'}`));
+    }
+    if (totalRegressions > 0) {
+      console.log(chalk.yellow(`  ⚠️  Regressions: ${totalRegressions} ${totalRegressions === 1 ? 'category' : 'categories'}`));
+    }
+    if (totalNeutral > 0) {
+      console.log(chalk.dim(`  → No change: ${totalNeutral} ${totalNeutral === 1 ? 'category' : 'categories'}`));
+    }
+
+    console.log('');
+
+    // Overall verdict
+    if (totalImprovements > totalRegressions) {
+      console.log(chalk.green.bold('🎉 Overall: Code quality is improving!\n'));
+    } else if (totalRegressions > totalImprovements) {
+      console.log(chalk.yellow.bold('⚠️  Overall: Code quality needs attention\n'));
+    } else {
+      console.log(chalk.dim('→ Overall: Code quality is stable\n'));
+    }
+
+    // Next steps
+    console.log(chalk.blue.bold('💡 Next steps:\n'));
+    if (totalRegressions > 0) {
+      console.log(chalk.dim('  • Review regressions: mcp audit --analyze'));
+      console.log(chalk.dim('  • Create tasks: mcp audit --create-tasks\n'));
+    } else {
+      console.log(chalk.dim('  • Keep up the good work!'));
+      console.log(chalk.dim('  • Continue regular audits\n'));
+    }
+
+  } catch (error) {
+    if (error instanceof Error && error.message.includes('not found')) {
+      console.log(chalk.yellow('\n⚠️  Audit log not found.\n'));
+      console.log(chalk.dim('Run audits first:'));
+      console.log(chalk.dim('  mcp mcp:security'));
+      console.log(chalk.dim('  mcp mcp:a11y\n'));
+    } else {
+      console.error(chalk.red('Failed to compare audits:'), error instanceof Error ? error.message : error);
       process.exit(1);
     }
   }
