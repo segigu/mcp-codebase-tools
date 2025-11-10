@@ -13,6 +13,7 @@ export interface AuditOptions {
   analyze?: boolean;
   createTasks?: boolean;
   andFix?: boolean;
+  trends?: boolean;
 }
 
 export async function auditCommand(options: AuditOptions): Promise<void> {
@@ -25,12 +26,14 @@ export async function auditCommand(options: AuditOptions): Promise<void> {
     await handleAuditAnalyze(projectPath);
   } else if (options.createTasks) {
     await handleAuditCreateTasks(projectPath);
+  } else if (options.trends) {
+    await handleAuditTrends(projectPath);
   } else if (options.history) {
     await handleAuditHistory(auditLogger, options.history);
   } else if (options.summary) {
     await handleAuditSummary(auditLogger);
   } else {
-    console.log(chalk.yellow('Usage: mcp audit [--and-fix] [--analyze] [--create-tasks] [--history <tool>] [--summary]'));
+    console.log(chalk.yellow('Usage: mcp audit [--and-fix] [--analyze] [--create-tasks] [--trends] [--history <tool>] [--summary]'));
   }
 }
 
@@ -368,6 +371,144 @@ async function handleAuditCreateTasks(projectPath: string): Promise<void> {
       console.log(chalk.dim('  mcp mcp:a11y\n'));
     } else {
       console.error(chalk.red('Failed to create tasks:'), error instanceof Error ? error.message : error);
+      process.exit(1);
+    }
+  }
+}
+
+async function handleAuditTrends(projectPath: string): Promise<void> {
+  const auditLogPath = path.join(projectPath, 'docs', 'audits', 'AUDIT_LOG.json');
+
+  try {
+    const analyzer = AuditAnalyzer.loadFromFile(auditLogPath);
+    const trends = analyzer.analyzeTrends();
+
+    // Header
+    console.log(chalk.cyan.bold('\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━'));
+    console.log(chalk.cyan.bold('📈 Audit Trends - Quality Over Time'));
+    console.log(chalk.cyan.bold('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n'));
+
+    // For each category with data, show trends
+    const categories: Record<string, { name: string; emoji: string }> = {
+      security: { name: 'Security', emoji: '🔒' },
+      a11y: { name: 'Accessibility', emoji: '♿' },
+      techDebt: { name: 'Technical Debt', emoji: '💰' },
+      complexity: { name: 'Complexity', emoji: '🧮' },
+    };
+
+    for (const [category, data] of Object.entries(trends)) {
+      if (data.length === 0) continue;
+
+      const categoryInfo = categories[category] || { name: category, emoji: '📊' };
+      console.log(chalk.bold(`\n${categoryInfo.emoji} ${categoryInfo.name} (last ${data.length} audits)\n`));
+
+      // Get latest audit info
+      const latest = data[data.length - 1];
+      const previous = data.length > 1 ? data[data.length - 2] : null;
+
+      // Show ASCII chart for scores (only if we have enough data points)
+      if (data.length >= 3) {
+        const scores = data.map(d => d.score);
+        const minScore = Math.min(...scores);
+        const maxScore = Math.max(...scores);
+        const range = maxScore - minScore || 10;
+
+        console.log(chalk.dim('Score:'));
+        const chartHeight = 5;
+        const chartWidth = Math.min(data.length, 20);
+
+        // Generate ASCII chart
+        for (let row = chartHeight; row >= 0; row--) {
+          const value = minScore + (range * row / chartHeight);
+          const valueStr = value.toFixed(0).padStart(3);
+
+          let line = chalk.dim(`${valueStr} ┤`);
+
+          for (let col = 0; col < chartWidth; col++) {
+            const dataIndex = Math.floor((col / chartWidth) * data.length);
+            const dataPoint = data[dataIndex];
+            const normalizedValue = (dataPoint.score - minScore) / range;
+            const rowThreshold = row / chartHeight;
+
+            if (Math.abs(normalizedValue - rowThreshold) < (1 / chartHeight / 2)) {
+              line += chalk.green('●');
+            } else if (normalizedValue > rowThreshold) {
+              line += chalk.dim('│');
+            } else {
+              line += ' ';
+            }
+          }
+
+          console.log(line);
+        }
+
+        // X-axis
+        console.log(chalk.dim('    └' + '─'.repeat(chartWidth)));
+
+        // Show dates
+        const firstDate = new Date(data[0].timestamp).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+        const lastDate = new Date(latest.timestamp).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+        const dateSpacing = Math.max(1, chartWidth - firstDate.length - lastDate.length);
+        console.log(chalk.dim(`    ${firstDate}${' '.repeat(dateSpacing)}${lastDate}\n`));
+      } else if (data.length === 2) {
+        console.log(chalk.dim('Not enough data for chart (need 3+ audits)\n'));
+      } else {
+        console.log(chalk.dim('Only 1 audit run so far\n'));
+      }
+
+      // Show trend information
+      if (previous) {
+        const scoreDiff = latest.score - previous.score;
+        const issuesDiff = (latest.issues || 0) - (previous.issues || 0);
+
+        const scoreArrow = scoreDiff > 0 ? '↗️' : scoreDiff < 0 ? '↘️' : '→';
+        const issuesArrow = issuesDiff < 0 ? '✅' : issuesDiff > 0 ? '⚠️' : '→';
+
+        console.log(chalk.bold('Current Status:'));
+        console.log(chalk.dim(`  Score: ${latest.score.toFixed(1)} ${scoreArrow} ${scoreDiff > 0 ? '+' : ''}${scoreDiff.toFixed(1)}`));
+        if (latest.issues !== undefined) {
+          console.log(chalk.dim(`  Issues: ${latest.issues} ${issuesArrow} ${issuesDiff > 0 ? '+' : ''}${issuesDiff}`));
+        }
+        console.log(chalk.dim(`  Date: ${latest.timestamp.toLocaleDateString()}\n`));
+
+        // Calculate trend (improvement rate)
+        if (data.length >= 3) {
+          const oldest = data[0];
+          const timeSpan = (latest.timestamp.getTime() - oldest.timestamp.getTime()) / (1000 * 60 * 60 * 24); // days
+          const scoreChange = latest.score - oldest.score;
+          const changePerWeek = (scoreChange / timeSpan) * 7;
+
+          if (Math.abs(changePerWeek) > 0.1) {
+            const trendEmoji = changePerWeek > 0 ? '📈' : '📉';
+            console.log(chalk.dim(`  Trend: ${trendEmoji} ${changePerWeek > 0 ? 'Improving' : 'Declining'} (${changePerWeek > 0 ? '+' : ''}${changePerWeek.toFixed(1)} points/week)\n`));
+          }
+        }
+      } else {
+        console.log(chalk.dim(`  Score: ${latest.score.toFixed(1)}`));
+        if (latest.issues !== undefined) {
+          console.log(chalk.dim(`  Issues: ${latest.issues}`));
+        }
+        console.log(chalk.dim(`  Date: ${latest.timestamp.toLocaleDateString()}\n`));
+      }
+    }
+
+    // Footer
+    console.log(chalk.cyan.bold('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n'));
+
+    console.log(chalk.blue.bold('💡 Tips:\n'));
+    console.log(chalk.dim('  • Run audits regularly to track progress'));
+    console.log(chalk.dim('  • Use `mcp audit --analyze` for detailed analysis'));
+    console.log(chalk.dim('  • Use `mcp audit --create-tasks` to fix issues\n'));
+
+  } catch (error) {
+    if (error instanceof Error && error.message.includes('not found')) {
+      console.log(chalk.yellow('\n⚠️  Audit log is empty or not found.\n'));
+      console.log(chalk.dim('Run some audits first:'));
+      console.log(chalk.dim('  mcp mcp:security'));
+      console.log(chalk.dim('  mcp mcp:a11y'));
+      console.log(chalk.dim('  mcp mcp:tech-debt\n'));
+    } else {
+      console.error(chalk.red('Failed to analyze trends:'), error instanceof Error ? error.message : error);
       process.exit(1);
     }
   }

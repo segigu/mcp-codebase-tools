@@ -75,6 +75,7 @@ export class CLI {
       .option('--and-fix', 'Comprehensive analysis and task creation (recommended)')
       .option('--analyze', 'Analyze audit log and show trends')
       .option('--create-tasks', 'Create tasks from critical issues')
+      .option('--trends', 'Show detailed trend charts over time')
       .option('--history <tool>', 'Show audit history for tool')
       .option('--summary', 'Show audit summary')
       .action(auditCommand);
