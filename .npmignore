@@ -1,0 +1,37 @@
+# Source files
+src/
+tsconfig.json
+.prettierrc
+.eslintrc.js
+
+# Development
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Testing
+**/__tests__/
+**/*.test.ts
+coverage/
+
+# Documentation source
+docs/
+
+# Examples
+examples/
+
+# Git
+.git/
+.gitignore
+.gitattributes
+
+# CI/CD
+.github/
+.travis.yml
+.circleci/
+
+# Misc
+.DS_Store
+*.log

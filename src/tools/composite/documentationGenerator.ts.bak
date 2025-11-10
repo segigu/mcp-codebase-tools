@@ -1,0 +1,337 @@
+/**
+ * Documentation Generator - Composite Skill
+ *
+ * Generates comprehensive project documentation by combining:
+ * - Component Inventory (React components catalog)
+ * - API Inventory (API endpoints and data models)
+ * - i18n Analysis (localization coverage)
+ *
+ * Outputs markdown documentation with statistics and insights.
+ */
+
+import { componentInventory, type ComponentInventoryOutput } from '../analyze/componentInventory'
+import { apiInventory, type ApiInventoryOutput } from '../analyze/apiInventory'
+import { i18nAnalysis, type I18nAnalysisOutput } from '../analyze/i18nAnalysis'
+import { logAuditResult } from '../../utils/audit-logger'
+import { type PaginationInput } from '../../utils/types'
+import * as fs from 'fs'
+import * as path from 'path'
+import { fileURLToPath } from 'url'
+
+const __filename = fileURLToPath(import.meta.url)
+const __dirname = path.dirname(__filename)
+
+export interface DocumentationGeneratorInput extends PaginationInput {
+  /** Output file path (default: docs/GENERATED_DOCUMENTATION.md) */
+  outputPath?: string
+}
+
+export interface DocumentationStats {
+  totalComponents: number
+  totalEndpoints: number
+  i18nCoverage: number
+  documentationScore: number
+  completeness: 'complete' | 'good' | 'partial' | 'poor'
+}
+
+export interface DocumentationGeneratorOutput {
+  stats: DocumentationStats
+  outputFile: string
+  detailedResults: {
+    components: ComponentInventoryOutput
+    api: ApiInventoryOutput
+    i18n: I18nAnalysisOutput
+  }
+  sections: {
+    components: string
+    api: string
+    i18n: string
+  }
+  executionTime: number
+}
+
+/**
+ * Generate project documentation
+ */
+export async function documentationGenerator(
+  input: DocumentationGeneratorInput = {}
+): Promise<DocumentationGeneratorOutput> {
+  const startTime = Date.now()
+
+  console.log('📚 Generating Project Documentation...')
+  console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n')
+
+  // Run all analyses in parallel
+  console.log('⚡ Collecting data from multiple sources...')
+  const [componentsResult, apiResult, i18nResult] = await Promise.all([
+    componentInventory({ limit: 200 }),
+    apiInventory({ limit: 200 }),
+    i18nAnalysis({})
+  ])
+
+  console.log('✅ Data collection completed\n')
+
+  // Calculate stats
+  const totalComponents = componentsResult.summary.total
+  const totalEndpoints = apiResult.summary.totalEndpoints
+  const i18nCoverage = i18nResult.coverage
+
+  // Documentation score: weighted average
+  const componentScore = Math.min(100, totalComponents * 2) // 50+ components = 100
+  const apiScore = Math.min(100, totalEndpoints * 5) // 20+ endpoints = 100
+  const i18nScore = i18nCoverage
+
+  const documentationScore = Math.round((componentScore + apiScore + i18nScore) / 3)
+
+  // Determine completeness
+  let completeness: 'complete' | 'good' | 'partial' | 'poor'
+  if (documentationScore >= 90) completeness = 'complete'
+  else if (documentationScore >= 70) completeness = 'good'
+  else if (documentationScore >= 50) completeness = 'partial'
+  else completeness = 'poor'
+
+  const stats: DocumentationStats = {
+    totalComponents,
+    totalEndpoints,
+    i18nCoverage,
+    documentationScore,
+    completeness
+  }
+
+  // Generate markdown sections
+
+  // Components section
+  const componentsSection = generateComponentsSection(componentsResult)
+
+  // API section
+  const apiSection = generateApiSection(apiResult)
+
+  // i18n section
+  const i18nSection = generateI18nSection(i18nResult)
+
+  // Combine all sections
+  const fullDocumentation = `# Project Documentation
+
+**Auto-generated:** ${new Date().toISOString()}
+
+## 📊 Documentation Statistics
+
+- **Total Components:** ${totalComponents}
+- **Total API Endpoints:** ${totalEndpoints}
+- **i18n Coverage:** ${i18nCoverage}%
+- **Documentation Score:** ${documentationScore}/100 (${completeness})
+
+---
+
+${componentsSection}
+
+---
+
+${apiSection}
+
+---
+
+${i18nSection}
+
+---
+
+## 🔄 Regeneration
+
+This documentation is auto-generated. To regenerate:
+
+\`\`\`bash
+npm run mcp:docs-generator
+\`\`\`
+
+**Last updated:** ${new Date().toLocaleString()}
+`
+
+  // Write to file
+  const outputPath = input.outputPath || path.resolve(__dirname, '..', '..', '..', 'docs', 'GENERATED_DOCUMENTATION.md')
+  const docsDir = path.dirname(outputPath)
+
+  // Ensure docs directory exists
+  if (!fs.existsSync(docsDir)) {
+    fs.mkdirSync(docsDir, { recursive: true })
+  }
+
+  fs.writeFileSync(outputPath, fullDocumentation, 'utf-8')
+
+  console.log(`✅ Documentation generated: ${outputPath}\n`)
+
+  const executionTime = Date.now() - startTime
+
+  const result: DocumentationGeneratorOutput = {
+    stats,
+    outputFile: outputPath,
+    detailedResults: {
+      components: componentsResult,
+      api: apiResult,
+      i18n: i18nResult
+    },
+    sections: {
+      components: componentsSection,
+      api: apiSection,
+      i18n: i18nSection
+    },
+    executionTime
+  }
+
+  // Log audit result
+  logAuditResult(
+    'documentationGenerator',
+    'mcp:docs-generator',
+    {
+      summary: {
+        documentationScore,
+        completeness,
+        totalComponents,
+        totalEndpoints,
+        i18nCoverage,
+        executionTime: `${executionTime}ms`
+      },
+      stats,
+      outputFile: outputPath
+    },
+    executionTime
+  )
+
+  return result
+}
+
+/**
+ * Generate components section
+ */
+function generateComponentsSection(data: ComponentInventoryOutput): string {
+  let markdown = `## 🧩 Components Inventory
+
+**Total Components:** ${data.summary.total}
+
+### Components by Category
+
+| Category | Count |
+|----------|-------|
+`
+
+  for (const [category, count] of Object.entries(data.summary.byCategory)) {
+    markdown += `| ${category} | ${count} |\n`
+  }
+
+  markdown += `\n### Component List\n\n`
+
+  for (const component of data.components.slice(0, 50)) {
+    markdown += `#### \`${component.name}\`\n`
+    markdown += `- **File:** \`${component.file}\`\n`
+    markdown += `- **Type:** ${component.type}\n`
+    markdown += `- **Category:** ${component.category}\n`
+    markdown += `- **Props:** ${component.props.length}\n`
+
+    if (component.hooks.length > 0) {
+      markdown += `- **Hooks:** ${component.hooks.join(', ')}\n`
+    }
+
+    if (component.description) {
+      markdown += `- **Description:** ${component.description}\n`
+    }
+
+    markdown += `\n`
+  }
+
+  if (data.components.length > 50) {
+    markdown += `\n*...and ${data.components.length - 50} more components*\n`
+  }
+
+  return markdown
+}
+
+/**
+ * Generate API section
+ */
+function generateApiSection(data: ApiInventoryOutput): string {
+  let markdown = `## 🔌 API Inventory
+
+**Total Endpoints:** ${data.summary.totalEndpoints}
+
+### Endpoints by Method
+
+| Method | Count |
+|--------|-------|
+`
+
+  for (const [method, count] of Object.entries(data.summary.byMethod)) {
+    markdown += `| ${method} | ${count} |\n`
+  }
+
+  markdown += `\n### API Endpoints\n\n`
+
+  for (const endpoint of data.endpoints.slice(0, 50)) {
+    markdown += `#### \`${endpoint.method} ${endpoint.path}\`\n`
+    markdown += `- **File:** \`${endpoint.file}\`\n`
+    markdown += `- **Handler:** \`${endpoint.handler}\`\n`
+
+    if (endpoint.auth) {
+      markdown += `- **Auth:** Required\n`
+    }
+
+    if (endpoint.validation) {
+      markdown += `- **Validation:** Yes\n`
+    }
+
+    markdown += `\n`
+  }
+
+  if (data.endpoints.length > 50) {
+    markdown += `\n*...and ${data.endpoints.length - 50} more endpoints*\n`
+  }
+
+  return markdown
+}
+
+/**
+ * Generate i18n section
+ */
+function generateI18nSection(data: I18nAnalysisOutput): string {
+  let markdown = `## 🌐 Internationalization (i18n)
+
+**Coverage:** ${data.coverage}%
+
+### Translation Keys
+
+- **Total Keys:** ${data.totalKeys}
+- **Missing Keys:** ${data.missingKeys.length}
+- **Unused Keys:** ${data.unusedKeys.length}
+
+### Languages
+
+`
+
+  for (const lang of data.languages) {
+    markdown += `- \`${lang}\`\n`
+  }
+
+  if (data.missingKeys.length > 0) {
+    markdown += `\n### Missing Translations\n\n`
+
+    for (const missing of data.missingKeys.slice(0, 20)) {
+      markdown += `- \`${missing.key}\` (needed in: ${missing.languages.join(', ')})\n`
+    }
+
+    if (data.missingKeys.length > 20) {
+      markdown += `\n*...and ${data.missingKeys.length - 20} more missing keys*\n`
+    }
+  }
+
+  if (data.unusedKeys.length > 0) {
+    markdown += `\n### Unused Keys (can be removed)\n\n`
+
+    for (const unused of data.unusedKeys.slice(0, 20)) {
+      markdown += `- \`${unused}\`\n`
+    }
+
+    if (data.unusedKeys.length > 20) {
+      markdown += `\n*...and ${data.unusedKeys.length - 20} more unused keys*\n`
+    }
+  }
+
+  return markdown
+}

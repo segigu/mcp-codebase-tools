@@ -1,0 +1,230 @@
+/**
+ * Full Project Audit - Composite Skill
+ *
+ * Runs comprehensive project audit by combining:
+ * - Security Audit (vulnerabilities)
+ * - A11y Audit (accessibility)
+ * - Tech Debt Calculator (code quality)
+ *
+ * Generates overall project health score and prioritized recommendations.
+ */
+
+import { securityAudit, type SecurityAuditOutput } from '../analyze/securityAudit'
+import { a11yAudit, type A11yAuditOutput } from '../analyze/a11yAudit'
+import { techDebtCalculator, type TechDebtOutput } from '../analyze/techDebtCalculator'
+import { logAuditResult } from '../../utils/audit-logger'
+import { type PaginationInput } from '../../utils/types'
+
+export interface FullProjectAuditInput extends PaginationInput {
+  // No additional filters - runs all audits
+}
+
+export interface ProjectHealthScore {
+  overall: number
+  security: number
+  accessibility: number
+  techDebt: number
+  grade: 'A' | 'B' | 'C' | 'D' | 'F'
+}
+
+export interface PrioritizedIssue {
+  category: 'security' | 'a11y' | 'tech-debt'
+  severity: 'critical' | 'high' | 'medium' | 'low'
+  issue: string
+  impact: string
+  recommendation: string
+  filesAffected?: number
+}
+
+export interface FullProjectAuditOutput {
+  healthScore: ProjectHealthScore
+  summary: {
+    totalIssues: number
+    criticalIssues: number
+    highPriorityIssues: number
+    mediumPriorityIssues: number
+    lowPriorityIssues: number
+  }
+  prioritizedIssues: PrioritizedIssue[]
+  detailedResults: {
+    security: SecurityAuditOutput
+    accessibility: A11yAuditOutput
+    techDebt: TechDebtOutput
+  }
+  recommendations: string[]
+  executionTime: number
+}
+
+/**
+ * Run full project audit
+ */
+export async function fullProjectAudit(
+  input: FullProjectAuditInput = {}
+): Promise<FullProjectAuditOutput> {
+  const startTime = Date.now()
+
+  console.log('🔍 Running Full Project Audit...')
+  console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n')
+
+  // Run all audits in parallel for performance
+  console.log('⚡ Running audits in parallel...')
+  const [securityResult, a11yResult, techDebtResult] = await Promise.all([
+    securityAudit({ limit: 50 }),
+    a11yAudit({ limit: 50 }),
+    techDebtCalculator({})
+  ])
+
+  console.log('✅ All audits completed\n')
+
+  // Calculate health scores
+  // Parse scores from string format "90/100"
+  const securityScore = parseInt(securityResult.score.split('/')[0]) || 0
+  const a11yScore = parseInt(a11yResult.summary.score.split('/')[0]) || 0
+  const techDebtScore = parseInt(techDebtResult.debtScore.split('/')[0]) || 0
+
+  const overallScore = Math.round((securityScore + a11yScore + techDebtScore) / 3)
+
+  // Determine grade
+  let grade: 'A' | 'B' | 'C' | 'D' | 'F'
+  if (overallScore >= 90) grade = 'A'
+  else if (overallScore >= 80) grade = 'B'
+  else if (overallScore >= 70) grade = 'C'
+  else if (overallScore >= 60) grade = 'D'
+  else grade = 'F'
+
+  const healthScore: ProjectHealthScore = {
+    overall: overallScore,
+    security: securityScore,
+    accessibility: a11yScore,
+    techDebt: techDebtScore,
+    grade
+  }
+
+  // Collect all issues and prioritize
+  const prioritizedIssues: PrioritizedIssue[] = []
+
+  // Add security issues
+  for (const vuln of securityResult.vulnerabilities.slice(0, 10)) {
+    prioritizedIssues.push({
+      category: 'security',
+      severity: vuln.severity as 'critical' | 'high' | 'medium' | 'low',
+      issue: vuln.type,
+      impact: `Security vulnerability: ${vuln.risk}`,
+      recommendation: vuln.fix,
+      filesAffected: 1
+    })
+  }
+
+  // Add a11y issues
+  for (const issue of a11yResult.issues.slice(0, 10)) {
+    prioritizedIssues.push({
+      category: 'a11y',
+      severity: issue.severity as 'critical' | 'high' | 'medium' | 'low',
+      issue: issue.type,
+      impact: `Accessibility issue: ${issue.element}`,
+      recommendation: issue.fix,
+      filesAffected: 1
+    })
+  }
+
+  // Add tech debt issues
+  const fixmeCount = techDebtResult.todos.byPriority['FIXME'] || 0
+  if (fixmeCount > 0) {
+    prioritizedIssues.push({
+      category: 'tech-debt',
+      severity: 'high',
+      issue: 'High-priority FIXMEs',
+      impact: `${fixmeCount} FIXME comments need attention`,
+      recommendation: 'Review and address FIXME comments before adding new features',
+      filesAffected: fixmeCount
+    })
+  }
+
+  if (techDebtResult.deprecated.length > 0) {
+    prioritizedIssues.push({
+      category: 'tech-debt',
+      severity: 'medium',
+      issue: 'Deprecated code',
+      impact: `${techDebtResult.deprecated.length} deprecated patterns found`,
+      recommendation: 'Refactor deprecated code to use modern patterns',
+      filesAffected: techDebtResult.deprecated.length
+    })
+  }
+
+  // Sort by severity (critical > high > medium > low)
+  const severityOrder = { critical: 0, high: 1, medium: 2, low: 3 }
+  prioritizedIssues.sort((a, b) => severityOrder[a.severity] - severityOrder[b.severity])
+
+  // Calculate summary
+  const summary = {
+    totalIssues: prioritizedIssues.length,
+    criticalIssues: prioritizedIssues.filter(i => i.severity === 'critical').length,
+    highPriorityIssues: prioritizedIssues.filter(i => i.severity === 'high').length,
+    mediumPriorityIssues: prioritizedIssues.filter(i => i.severity === 'medium').length,
+    lowPriorityIssues: prioritizedIssues.filter(i => i.severity === 'low').length
+  }
+
+  // Generate recommendations
+  const recommendations: string[] = []
+
+  if (securityScore < 80) {
+    recommendations.push('🔒 Security: Address critical and high-priority security vulnerabilities immediately')
+  }
+
+  if (a11yScore < 80) {
+    recommendations.push('♿ Accessibility: Improve accessibility to meet WCAG standards')
+  }
+
+  if (techDebtScore < 70) {
+    recommendations.push('🧹 Tech Debt: Allocate time to reduce technical debt before adding new features')
+  }
+
+  if (summary.criticalIssues > 0) {
+    recommendations.push(`⚠️ Critical: ${summary.criticalIssues} critical issues require immediate attention`)
+  }
+
+  if (overallScore >= 90) {
+    recommendations.push('✨ Excellent: Project health is excellent. Continue maintaining high standards.')
+  } else if (overallScore >= 80) {
+    recommendations.push('👍 Good: Project health is good. Focus on addressing remaining issues.')
+  } else if (overallScore >= 70) {
+    recommendations.push('⚠️ Fair: Project health needs improvement. Prioritize high-severity issues.')
+  } else {
+    recommendations.push('🚨 Poor: Project health is poor. Immediate action required on multiple fronts.')
+  }
+
+  const executionTime = Date.now() - startTime
+
+  const result: FullProjectAuditOutput = {
+    healthScore,
+    summary,
+    prioritizedIssues,
+    detailedResults: {
+      security: securityResult,
+      accessibility: a11yResult,
+      techDebt: techDebtResult
+    },
+    recommendations,
+    executionTime
+  }
+
+  // Log audit result
+  logAuditResult(
+    'fullProjectAudit',
+    'mcp:full-project-audit',
+    {
+      summary: {
+        overallScore,
+        grade,
+        totalIssues: summary.totalIssues,
+        criticalIssues: summary.criticalIssues,
+        executionTime: `${executionTime}ms`
+      },
+      healthScore,
+      recommendations
+    },
+    executionTime
+  )
+
+  return result
+}

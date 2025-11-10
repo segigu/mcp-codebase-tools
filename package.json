@@ -1,0 +1,88 @@
+{
+  "name": "@mcp/codebase-tools",
+  "version": "1.0.0",
+  "description": "MCP Codebase Analysis Tools - 90-98% token savings for AI-powered code analysis. 30 commands for security audits, accessibility checks, complexity analysis, and more.",
+  "keywords": [
+    "mcp",
+    "code-analysis",
+    "ast",
+    "security-audit",
+    "a11y",
+    "technical-debt",
+    "codebase-tools",
+    "ai-tools",
+    "token-optimization",
+    "static-analysis"
+  ],
+  "author": "MCP Tools Team",
+  "license": "MIT",
+  "type": "module",
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "bin": {
+    "mcp": "./dist/bin/mcp.js"
+  },
+  "main": "./dist/lib/index.js",
+  "types": "./dist/lib/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/lib/index.d.ts",
+      "default": "./dist/lib/index.js"
+    },
+    "./tools/*": {
+      "types": "./dist/tools/*/index.d.ts",
+      "default": "./dist/tools/*/index.js"
+    }
+  },
+  "files": [
+    "dist/",
+    "templates/",
+    "docs/",
+    "README.md",
+    "LICENSE",
+    "CHANGELOG.md"
+  ],
+  "scripts": {
+    "build": "npm run build:tsc && npm run build:bin",
+    "build:tsc": "tsc",
+    "build:bin": "echo '#!/usr/bin/env node' > dist/bin/mcp.js && cat dist/cli/index.js >> dist/bin/mcp.js && chmod +x dist/bin/mcp.js",
+    "dev": "tsc --watch",
+    "clean": "rm -rf dist",
+    "prepublishOnly": "npm run clean && npm run build",
+    "test": "node --test",
+    "lint": "tsc --noEmit",
+    "format": "prettier --write \"src/**/*.ts\"",
+    "link:local": "npm link",
+    "unlink:local": "npm unlink -g @mcp/codebase-tools"
+  },
+  "dependencies": {
+    "@babel/parser": "^7.26.2",
+    "@babel/traverse": "^7.26.2",
+    "@babel/types": "^7.26.0",
+    "chalk": "^5.3.0",
+    "commander": "^12.0.0",
+    "cosmiconfig": "^9.0.0",
+    "fast-glob": "^3.3.2",
+    "inquirer": "^10.0.0",
+    "ora": "^8.0.1",
+    "typescript": "^5.9.3",
+    "update-notifier": "^7.0.0",
+    "vm2": "^3.10.0"
+  },
+  "devDependencies": {
+    "@types/babel__traverse": "^7.20.6",
+    "@types/inquirer": "^9.0.7",
+    "@types/node": "^20.11.0",
+    "@types/update-notifier": "^6.0.8",
+    "prettier": "^3.2.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/mcp-tools/codebase-tools.git"
+  },
+  "bugs": {
+    "url": "https://github.com/mcp-tools/codebase-tools/issues"
+  },
+  "homepage": "https://github.com/mcp-tools/codebase-tools#readme"
+}
