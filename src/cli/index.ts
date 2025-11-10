@@ -72,6 +72,7 @@ export class CLI {
       .command('audit')
       .description('Audit log analysis and management')
       .option('--analyze', 'Analyze audit log and show trends')
+      .option('--create-tasks', 'Create tasks from critical issues')
       .option('--history <tool>', 'Show audit history for tool')
       .option('--summary', 'Show audit summary')
       .action(auditCommand);

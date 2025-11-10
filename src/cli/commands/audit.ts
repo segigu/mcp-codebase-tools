@@ -3,11 +3,13 @@ import * as path from 'path';
 // @ts-ignore - AuditLogger might not be exported as class
 import { AuditLogger } from '../../utils/audit-logger.js';
 import { AuditAnalyzer } from '../audit-analyzer.js';
+import { TaskGenerator } from '../task-generator.js';
 
 export interface AuditOptions {
   history?: string;
   summary?: boolean;
   analyze?: boolean;
+  createTasks?: boolean;
 }
 
 export async function auditCommand(options: AuditOptions): Promise<void> {
@@ -16,12 +18,14 @@ export async function auditCommand(options: AuditOptions): Promise<void> {
 
   if (options.analyze) {
     await handleAuditAnalyze(projectPath);
+  } else if (options.createTasks) {
+    await handleAuditCreateTasks(projectPath);
   } else if (options.history) {
     await handleAuditHistory(auditLogger, options.history);
   } else if (options.summary) {
     await handleAuditSummary(auditLogger);
   } else {
-    console.log(chalk.yellow('Usage: mcp audit [--analyze] [--history <tool>] [--summary]'));
+    console.log(chalk.yellow('Usage: mcp audit [--analyze] [--create-tasks] [--history <tool>] [--summary]'));
   }
 }
 
@@ -284,6 +288,75 @@ async function handleAuditAnalyze(projectPath: string): Promise<void> {
       console.log(chalk.dim('  mcp mcp:complexity\n'));
     } else {
       console.error(chalk.red('Failed to analyze audit log:'), error instanceof Error ? error.message : error);
+      process.exit(1);
+    }
+  }
+}
+
+async function handleAuditCreateTasks(projectPath: string): Promise<void> {
+  const auditLogPath = path.join(projectPath, 'docs', 'audits', 'AUDIT_LOG.json');
+  const backlogPath = path.join(projectPath, 'docs', 'tasks', 'BACKLOG.json');
+
+  try {
+    console.log(chalk.cyan.bold('\n📋 Generating tasks from critical issues...\n'));
+
+    // Load audit log and find critical issues
+    const analyzer = AuditAnalyzer.loadFromFile(auditLogPath);
+    const criticalIssues = analyzer.findCriticalIssues();
+
+    if (criticalIssues.length === 0) {
+      console.log(chalk.green('✅ No critical issues found! Nothing to create.\n'));
+      return;
+    }
+
+    // Create task generator
+    const taskGenerator = new TaskGenerator(backlogPath);
+
+    // Generate tasks
+    const newTasks = await taskGenerator.createTasksFromIssues(criticalIssues);
+
+    // Display results
+    console.log(chalk.green.bold(`✅ Created ${newTasks.length} task${newTasks.length > 1 ? 's' : ''}:\n`));
+
+    newTasks.forEach(task => {
+      const priorityColors: Record<string, any> = {
+        critical: chalk.red,
+        high: chalk.yellow,
+        medium: chalk.blue,
+        low: chalk.dim,
+      };
+
+      const priorityColor = priorityColors[task.priority] || chalk.white;
+      console.log(priorityColor(`  ${task.id} [${task.priority.toUpperCase()}] ${task.title}`));
+
+      if (task.relatedFiles.length > 0) {
+        console.log(chalk.dim(`    File: ${task.relatedFiles[0]}`));
+      }
+
+      if (task.tags.length > 0) {
+        console.log(chalk.dim(`    Tags: ${task.tags.map(t => `#${t}`).join(' ')}`));
+      }
+
+      console.log();
+    });
+
+    console.log(chalk.green(`💾 Saved to ${backlogPath.replace(projectPath, '.')}\n`));
+
+    // Next steps
+    console.log(chalk.blue.bold('🚀 Next steps:\n'));
+    console.log(chalk.dim('1. Review tasks:'));
+    console.log(chalk.dim('   mcp mcp:task-list\n'));
+    console.log(chalk.dim('2. Start working on first task:'));
+    console.log(chalk.dim('   mcp mcp:task-next\n'));
+
+  } catch (error) {
+    if (error instanceof Error && error.message.includes('not found')) {
+      console.log(chalk.yellow('\n⚠️  Audit log not found.\n'));
+      console.log(chalk.dim('Run audits first:'));
+      console.log(chalk.dim('  mcp mcp:security'));
+      console.log(chalk.dim('  mcp mcp:a11y\n'));
+    } else {
+      console.error(chalk.red('Failed to create tasks:'), error instanceof Error ? error.message : error);
       process.exit(1);
     }
   }
