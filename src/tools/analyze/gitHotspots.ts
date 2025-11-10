@@ -70,7 +70,8 @@ export async function gitHotspots(
     const featureCommits = commits.filter(c => c.includes('feat')).length
     const refactorCommits = commits.filter(c => c.includes('refactor')).length
 
-    const ratio = featureCommits > 0 ? (fixCommits / featureCommits).toFixed(2) : '0'
+    const ratioNum = featureCommits > 0 ? fixCommits / featureCommits : 0
+    const ratio = ratioNum.toFixed(2)
 
     const result = {
       hotspots: paginatedHotspots,
@@ -101,7 +102,7 @@ export async function gitHotspots(
           fixCommits,
           featureCommits,
           refactorCommits,
-          ratio
+          ratio: ratioNum
         }
       },
       Date.now() - startTime
