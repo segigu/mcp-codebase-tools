@@ -8,14 +8,15 @@
 
 **Progress:**
 - ✅ Task 1: `mcp audit analyze` - Analyze trends and critical issues (COMPLETED)
-- ⏳ Task 2: `mcp audit create-tasks` - Generate tasks from critical issues (IN PROGRESS)
-- ⏳ Task 3: `mcp audit trends` - Show detailed trend graphs
+- ✅ Task 2: `mcp audit create-tasks` - Generate tasks from critical issues (COMPLETED)
+- ⏳ Task 3: `mcp audit trends` - Show detailed trend graphs (NEXT)
 - ⏳ Task 4: `mcp audit compare` - Compare audits before/after
 - ⏳ Task 5: `mcp audit dashboard` - Generate HTML dashboard
 
 **Files Created:**
 - `src/cli/audit-analyzer.ts` - Core analysis logic (✅ Complete)
-- `src/cli/commands/audit.ts` - CLI command updated (✅ Complete)
+- `src/cli/task-generator.ts` - Task generation from issues (✅ Complete)
+- `src/cli/commands/audit.ts` - CLI commands updated (✅ Complete)
 
 **Next Steps:**
 1. Implement Task 2 (`create-tasks`)

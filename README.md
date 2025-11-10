@@ -136,17 +136,43 @@ mcp find-components
 | `mcp code-health-check` | **Complexity + Unused + Performance** | 95% (80K → 4K) |
 | `mcp project-docs` | **Components + API + i18n docs** | 95% (60K → 3K) |
 
-### 📊 Management
+### 📊 Management & Audit Log Analysis
 
 | Command | Description |
 |---------|-------------|
 | `mcp list` | List all available tools |
 | `mcp describe <tool>` | Tool description and usage |
 | `mcp schema <tool>` | Full tool schema |
-| `mcp audit-history <tool>` | Audit execution history |
-| `mcp audit-summary` | Overall audit statistics |
 | `mcp cache-status` | Cache hit rate and stats |
 | `mcp cache-clear [tool]` | Clear cache (all or specific tool) |
+
+**Audit Log Analysis (NEW!):**
+
+| Command | Description | What it does |
+|---------|-------------|--------------|
+| `mcp audit --analyze` | **Analyze audit history** | Shows trends, critical issues, and recommendations |
+| `mcp audit --create-tasks` | **Generate tasks from issues** | Creates BACKLOG.json tasks from critical/high severity issues |
+| `mcp audit --history <tool>` | Audit execution history | Shows past runs for specific tool |
+| `mcp audit --summary` | Overall audit statistics | Summary across all tools |
+
+**Example Workflow:**
+```bash
+# 1. Run audits
+mcp security-audit
+mcp a11y-audit
+mcp tech-debt
+
+# 2. Analyze results
+mcp audit --analyze
+# Shows: 61 critical issues, score trends, recommendations
+
+# 3. Generate tasks automatically
+mcp audit --create-tasks
+# Creates: TASK-027 to TASK-037 in docs/tasks/BACKLOG.json
+
+# 4. Start fixing
+mcp mcp:task-next
+```
 
 ---
 
