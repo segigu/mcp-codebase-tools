@@ -1,6 +1,29 @@
 # 🗺️ MCP Codebase Tools - Development Roadmap
 
-## 📍 Current Status (v1.1.0 ✅ Released!)
+## 📍 Current Status (v1.2.0 🚧 In Progress!)
+
+### 🚧 v1.2.0 - Audit Log Analysis Tools (In Progress)
+
+**Goal:** Make audit logs actionable with analysis and task generation
+
+**Progress:**
+- ✅ Task 1: `mcp audit analyze` - Analyze trends and critical issues (COMPLETED)
+- ⏳ Task 2: `mcp audit create-tasks` - Generate tasks from critical issues (IN PROGRESS)
+- ⏳ Task 3: `mcp audit trends` - Show detailed trend graphs
+- ⏳ Task 4: `mcp audit compare` - Compare audits before/after
+- ⏳ Task 5: `mcp audit dashboard` - Generate HTML dashboard
+
+**Files Created:**
+- `src/cli/audit-analyzer.ts` - Core analysis logic (✅ Complete)
+- `src/cli/commands/audit.ts` - CLI command updated (✅ Complete)
+
+**Next Steps:**
+1. Implement Task 2 (`create-tasks`)
+2. Implement Task 3 (`trends`)
+3. Update README and documentation
+4. Commit and push v1.2.0
+
+---
 
 ### ✅ v1.1.0 Completed (2025-01-10)
 
@@ -18,7 +41,7 @@
 
 ## 🚀 Roadmap to v2.0 (The Right Way™)
 
-### 🎯 v1.2 - Tests & CI/CD (2-3 weeks)
+### 🎯 v1.3 - Tests & CI/CD (2-3 weeks)
 
 **Goal:** Production-ready quality with automated testing
 

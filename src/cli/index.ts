@@ -70,7 +70,8 @@ export class CLI {
 
     this.program
       .command('audit')
-      .description('Audit commands')
+      .description('Audit log analysis and management')
+      .option('--analyze', 'Analyze audit log and show trends')
       .option('--history <tool>', 'Show audit history for tool')
       .option('--summary', 'Show audit summary')
       .action(auditCommand);
