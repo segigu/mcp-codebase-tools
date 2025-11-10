@@ -46,7 +46,7 @@
   "scripts": {
     "build": "npm run build:tsc && npm run build:bin",
     "build:tsc": "tsc",
-    "build:bin": "echo '#!/usr/bin/env node' > dist/bin/mcp.js && cat dist/cli/index.js >> dist/bin/mcp.js && chmod +x dist/bin/mcp.js",
+    "build:bin": "chmod +x dist/bin/mcp.js",
     "dev": "tsc --watch",
     "clean": "rm -rf dist",
     "prepublishOnly": "npm run clean && npm run build",
