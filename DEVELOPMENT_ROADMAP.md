@@ -1,6 +1,206 @@
 # 🗺️ MCP Codebase Tools - Development Roadmap
 
-## 📍 Current Status (v1.0.0)
+## 📍 Current Status (v1.1.0 ✅ Released!)
+
+### ✅ v1.1.0 Completed (2025-01-10)
+
+**All Priority 1-3 tasks completed:**
+- ✅ Fixed all 3 composite tools (codeHealthCheck, documentationGenerator, fullProjectAudit)
+- ✅ Enabled cache and audit CLI commands
+- ✅ Resolved all TypeScript compilation errors
+- ✅ **30/30 tools working (100%)**
+- ✅ Zero TypeScript errors in build
+- ✅ Proper bin wrapper for CLI execution
+
+**Status:** Released to GitHub with tag v1.1.0
+
+---
+
+## 🚀 Roadmap to v2.0 (The Right Way™)
+
+### 🎯 v1.2 - Tests & CI/CD (2-3 weeks)
+
+**Goal:** Production-ready quality with automated testing
+
+**Tasks:**
+1. ✅ Setup Vitest testing framework
+2. ✅ Write unit tests for all 30 tools (80%+ coverage)
+3. ✅ Add integration tests for CLI commands
+4. ✅ Setup GitHub Actions CI/CD pipeline
+5. ✅ Add pre-commit hooks (lint + test)
+6. ✅ Performance benchmarks for large projects (1000+ files)
+
+**Acceptance Criteria:**
+- [ ] 80%+ test coverage
+- [ ] All tests passing in CI
+- [ ] Build time < 10s
+- [ ] Analysis time < 5s for 100 files
+
+**Estimated effort:** 2-3 weeks (2-3 hours/day)
+
+---
+
+### 🎯 v1.3 - Improvements & Optimization (1-2 weeks)
+
+**Goal:** Better performance and user experience
+
+**Tasks:**
+1. ✅ Implement results caching with TTL
+2. ✅ Add parallel execution for multiple tools
+3. ✅ JSON output format for all commands
+4. ✅ Better error messages with suggestions
+5. ✅ Configuration validation
+6. ✅ Exclude patterns in mcp.config.js
+7. ✅ Progress indicators for long operations
+
+**Acceptance Criteria:**
+- [ ] 90-98% token savings maintained
+- [ ] Parallel execution 2-3x faster
+- [ ] Clear error messages with actionable suggestions
+
+**Estimated effort:** 1-2 weeks (2-3 hours/day)
+
+---
+
+### 🎯 v1.4 - Documentation & Polish (1 week)
+
+**Goal:** Complete, professional documentation
+
+**Tasks:**
+1. ✅ Detailed docs for each tool with examples
+2. ✅ Create docs/examples/ directory with real-world usage
+3. ✅ Troubleshooting guide
+4. ✅ Migration guide for major versions
+5. ✅ Video tutorials (optional)
+6. ✅ Contributing guidelines
+7. ✅ Code of conduct
+
+**Acceptance Criteria:**
+- [ ] Every tool has usage example
+- [ ] Common issues documented with solutions
+- [ ] Clear contribution process
+
+**Estimated effort:** 1 week (2-3 hours/day)
+
+---
+
+### 🎯 v2.0 - Major Features (1-2 months)
+
+**Goal:** Multi-framework support, plugins, and npm publication
+
+**Major Features:**
+
+1. **Multi-Framework Support**
+   - Full Vue.js support
+   - Full Angular support
+   - Full Svelte support
+   - Auto-detect framework and use specific analyzers
+
+2. **Plugin System**
+   - Allow custom tools via plugins
+   - Plugin API documentation
+   - Example plugins repository
+
+3. **Web UI Dashboard**
+   - Visual reports with charts
+   - Historical trends
+   - Export to PDF/HTML
+   - Real-time metrics
+
+4. **CI/CD Integration**
+   - GitHub Actions marketplace action
+   - GitLab CI template
+   - CircleCI orb
+   - Fail on threshold (e.g., complexity > 20)
+
+5. **npm Registry Publication**
+   - Publish to npm.js
+   - Automated releases via GitHub Actions
+   - Semantic versioning automation
+
+**Acceptance Criteria:**
+- [ ] Works with Vue/Angular/Svelte projects
+- [ ] At least 3 example plugins
+- [ ] Dashboard works in all major browsers
+- [ ] Published on npm with 100+ downloads/week
+
+**Estimated effort:** 1-2 months (3-4 hours/day)
+
+---
+
+## 📊 Release Checklist
+
+### Before v1.2 Release:
+- [ ] All tests passing (80%+ coverage)
+- [ ] CI/CD pipeline working
+- [ ] No critical bugs
+- [ ] CHANGELOG updated
+- [ ] Version bumped (npm version minor)
+- [ ] Git tag created
+- [ ] Pushed to GitHub
+
+### Before v1.3 Release:
+- [ ] All v1.2 items + improvements tested
+- [ ] Performance benchmarks show improvement
+- [ ] Documentation updated
+- [ ] No regressions in existing functionality
+
+### Before v1.4 Release:
+- [ ] All documentation complete
+- [ ] Examples work and are tested
+- [ ] Ready for wider adoption
+
+### Before v2.0 Release:
+- [ ] All major features implemented
+- [ ] Multi-framework support tested on real projects
+- [ ] Plugin system documented with examples
+- [ ] Dashboard production-ready
+- [ ] npm publication successful
+- [ ] Migration guide from v1.x
+
+---
+
+## 🐛 Known Issues to Address
+
+### Security (HIGH PRIORITY - v1.1.1)
+- [ ] Fix `tmp` package vulnerability (low severity)
+- [ ] Update `inquirer` to version without vulnerabilities
+- [ ] Run `npm audit fix` and test
+
+### Performance (MEDIUM - v1.3)
+- [ ] Optimize AST parsing for large files (> 1000 lines)
+- [ ] Add caching for expensive operations
+- [ ] Reduce memory usage for 1000+ file projects
+
+### UX (MEDIUM - v1.3)
+- [ ] Add progress bars for long-running operations
+- [ ] Better error messages with context
+- [ ] Interactive mode for ambiguous inputs
+
+---
+
+## 📝 Decision: The Right Way (Approved)
+
+**Chosen Path:** A - Do it right ✅
+
+**Timeline:**
+- v1.2 (Tests + CI/CD): 2-3 weeks
+- v1.3 (Improvements): 1-2 weeks
+- v1.4 (Documentation): 1 week
+- v2.0 (Major features): 1-2 months
+
+**Total to v2.0:** ~2-3 months
+
+**Why this approach:**
+- ✅ Stable, tested foundation
+- ✅ Easy to maintain and extend
+- ✅ Ready for npm publication
+- ✅ Professional quality
+- ✅ Confidence in adding major features
+
+---
+
+## 📍 Previous Status (v1.0.0)
 
 ### ✅ What Works (27/30 tools - 90%)
 

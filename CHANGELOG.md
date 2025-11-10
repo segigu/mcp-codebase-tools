@@ -5,6 +5,16 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.1.1] - 2025-01-10
+
+### Security
+- **Dependencies:** Updated inquirer from v10.0.0 to v12.11.0 to fix tmp package vulnerability
+- Fixed 6 low severity vulnerabilities in development dependencies
+- Zero vulnerabilities in production dependencies
+
+### Changed
+- Updated package-lock.json with secure dependency versions
+
 ## [1.1.0] - 2025-01-10
 
 ### Fixed
@@ -69,5 +79,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Glossary of terms
 - Claude Code integration guide
 
+[1.1.1]: https://github.com/mcp-tools/codebase-tools/releases/tag/v1.1.1
 [1.1.0]: https://github.com/mcp-tools/codebase-tools/releases/tag/v1.1.0
 [1.0.0]: https://github.com/mcp-tools/codebase-tools/releases/tag/v1.0.0
