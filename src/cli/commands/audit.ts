@@ -4,19 +4,24 @@ import * as path from 'path';
 import { AuditLogger } from '../../utils/audit-logger.js';
 import { AuditAnalyzer } from '../audit-analyzer.js';
 import { TaskGenerator } from '../task-generator.js';
+import { markAuditsReviewed, markTasksCreated } from '../../utils/audit-status.js';
+import { handleAuditAndFix } from './audit-and-fix.js';
 
 export interface AuditOptions {
   history?: string;
   summary?: boolean;
   analyze?: boolean;
   createTasks?: boolean;
+  andFix?: boolean;
 }
 
 export async function auditCommand(options: AuditOptions): Promise<void> {
   const projectPath = process.cwd();
   const auditLogger = new AuditLogger(projectPath);
 
-  if (options.analyze) {
+  if (options.andFix) {
+    await handleAuditAndFix(projectPath);
+  } else if (options.analyze) {
     await handleAuditAnalyze(projectPath);
   } else if (options.createTasks) {
     await handleAuditCreateTasks(projectPath);
@@ -25,7 +30,7 @@ export async function auditCommand(options: AuditOptions): Promise<void> {
   } else if (options.summary) {
     await handleAuditSummary(auditLogger);
   } else {
-    console.log(chalk.yellow('Usage: mcp audit [--analyze] [--create-tasks] [--history <tool>] [--summary]'));
+    console.log(chalk.yellow('Usage: mcp audit [--and-fix] [--analyze] [--create-tasks] [--history <tool>] [--summary]'));
   }
 }
 
@@ -278,6 +283,9 @@ async function handleAuditAnalyze(projectPath: string): Promise<void> {
     console.log(chalk.dim('3. View detailed trends:'));
     console.log(chalk.dim('   mcp audit trends\n'));
 
+    // Mark audits as reviewed
+    markAuditsReviewed(projectPath);
+
   } catch (error) {
     if (error instanceof Error && error.message.includes('not found')) {
       console.log(chalk.yellow('\n⚠️  Audit log is empty or not found.\n'));
@@ -349,6 +357,9 @@ async function handleAuditCreateTasks(projectPath: string): Promise<void> {
     console.log(chalk.dim('2. Start working on first task:'));
     console.log(chalk.dim('   mcp mcp:task-next\n'));
 
+    // Mark tasks as created
+    markTasksCreated(projectPath);
+
   } catch (error) {
     if (error instanceof Error && error.message.includes('not found')) {
       console.log(chalk.yellow('\n⚠️  Audit log not found.\n'));
@@ -361,3 +372,4 @@ async function handleAuditCreateTasks(projectPath: string): Promise<void> {
     }
   }
 }
+

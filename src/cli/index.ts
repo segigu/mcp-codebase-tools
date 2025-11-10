@@ -9,6 +9,7 @@ import { initCommand } from './commands/init.js';
 import { listCommand } from './commands/list.js';
 import { cacheCommand } from './commands/cache.js';
 import { auditCommand } from './commands/audit.js';
+import { shouldShowReminder, getReminderMessage, markReminderShown } from '../utils/audit-status.js';
 
 // Read package.json for version
 const pkg = {
@@ -71,6 +72,7 @@ export class CLI {
     this.program
       .command('audit')
       .description('Audit log analysis and management')
+      .option('--and-fix', 'Comprehensive analysis and task creation (recommended)')
       .option('--analyze', 'Analyze audit log and show trends')
       .option('--create-tasks', 'Create tasks from critical issues')
       .option('--history <tool>', 'Show audit history for tool')
@@ -133,6 +135,9 @@ export class CLI {
 
   public async run(argv: string[]): Promise<void> {
     try {
+      // Show audit reminder before running command (if applicable)
+      this.showAuditReminder();
+
       await this.program.parseAsync(argv);
     } catch (error) {
       if (error instanceof Error) {
@@ -143,6 +148,29 @@ export class CLI {
       }
       process.exit(1);
     }
+  }
+
+  private showAuditReminder(): void {
+    const projectPath = process.cwd();
+
+    // Check if we should show reminder
+    if (!shouldShowReminder(projectPath)) {
+      return;
+    }
+
+    const message = getReminderMessage(projectPath);
+    if (!message) {
+      return;
+    }
+
+    // Show reminder banner
+    console.log(chalk.yellow('\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━'));
+    console.log(message);
+    console.log(chalk.dim('\n💡 Quick fix: mcp audit --and-fix'));
+    console.log(chalk.yellow('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n'));
+
+    // Mark reminder as shown
+    markReminderShown(projectPath);
   }
 
   public static async run(argv: string[]): Promise<void> {
